@@ -1,0 +1,52 @@
+[
+  {
+    "id": "a11-backdoor",
+    "name": "A11 Global Backdoor",
+    "description": "Obfuscated global injection starting with global.i=\"A11-#\". A confirmed supply-chain attack pattern found in the wild.",
+    "literal": "global.i=\"A11-#\"",
+    "regex": "global\\.i=\"A11-#\".*",
+    "severity": "critical",
+    "extensions": ["js", "ts", "tsx", "jsx", "mjs", "cjs"],
+    "autoClean": true
+  },
+  {
+    "id": "eval-atob",
+    "name": "Obfuscated eval(atob())",
+    "description": "Decodes a base64 string at runtime and executes it. Classic payload delivery mechanism.",
+    "literal": "eval(atob(",
+    "regex": "eval\\s*\\(\\s*atob\\s*\\([^)]+\\)\\s*\\)",
+    "severity": "critical",
+    "extensions": ["js", "ts", "mjs", "cjs"],
+    "autoClean": false
+  },
+  {
+    "id": "eval-buffer",
+    "name": "Obfuscated eval(Buffer.from())",
+    "description": "Node.js equivalent of eval(atob()). Decodes a base64 or hex buffer and executes it.",
+    "literal": "eval(Buffer.from(",
+    "regex": "eval\\s*\\(\\s*Buffer\\.from\\s*\\([^)]+\\)(?:\\.toString\\s*\\([^)]*\\))?\\s*\\)",
+    "severity": "critical",
+    "extensions": ["js", "ts", "mjs", "cjs"],
+    "autoClean": false
+  },
+  {
+    "id": "env-exfil-fetch",
+    "name": "Env Variable Exfiltration (fetch)",
+    "description": "Sends process.env contents to an external server using the fetch API.",
+    "literal": "process.env",
+    "regex": "fetch\\s*\\(['\"][^'\"]+['\"]\\s*,\\s*\\{[\\s\\S]{0,200}process\\.env",
+    "severity": "high",
+    "extensions": ["js", "ts", "mjs", "cjs"],
+    "autoClean": false
+  },
+  {
+    "id": "hex-blob",
+    "name": "Long Hex-Encoded Blob",
+    "description": "Suspiciously long sequence of hex escape sequences. Often used to hide malicious code from static analysis.",
+    "literal": "\\x",
+    "regex": "(?:\\\\x[0-9a-fA-F]{2}){20,}",
+    "severity": "high",
+    "extensions": ["js", "ts", "mjs", "cjs"],
+    "autoClean": false
+  }
+]

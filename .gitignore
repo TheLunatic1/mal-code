@@ -1,0 +1,12 @@
+# Secrets — NEVER commit
+.env
+
+# Dependencies
+node_modules/
+
+# Electron build output
+dist/
+out/
+
+# Electron cache
+.cache/

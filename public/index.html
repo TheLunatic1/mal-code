@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🛡️ Malware Scanner — GitHub Security Dashboard</title>
+  <meta name="description" content="Standalone GitHub repository malware scanner and cleaner dashboard." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── CONNECT SCREEN ───────────────────────────────────────────────────── -->
+<div id="connect-screen" class="connect-screen">
+  <div class="connect-card glass">
+    <div class="connect-logo">
+      <span class="shield-icon">🛡️</span>
+      <h1>Malware Scanner</h1>
+      <p>GitHub Repository Security Dashboard</p>
+    </div>
+    <div class="connect-form">
+      <label for="pat-input">GitHub Personal Access Token</label>
+      <div class="pat-row">
+        <input type="password" id="pat-input" placeholder="ghp_••••••••••••••••••••••••••••••••••••••" autocomplete="off" />
+        <button id="connect-btn" class="btn btn-primary">Connect</button>
+      </div>
+      <p class="hint">Required scopes: <code>repo</code>, <code>read:user</code> — Token is held in memory only, never saved.</p>
+      <div id="connect-error" class="error-msg hidden"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN APP ─────────────────────────────────────────────────────────── -->
+<div id="app" class="app hidden">
+
+  <!-- HEADER -->
+  <!-- Electron-only: window drag region + controls -->
+  <div id="electron-titlebar" class="electron-titlebar hidden">
+    <div class="titlebar-drag"></div>
+    <div class="win-controls">
+      <button id="btn-min" class="wc-btn" title="Minimize">
+        <svg viewBox="0 0 10 1" width="10" height="1"><rect width="10" height="1" fill="currentColor"/></svg>
+      </button>
+      <button id="btn-max" class="wc-btn" title="Maximize">
+        <svg viewBox="0 0 10 10" width="10" height="10"><path d="M1,1v8h8V1H1z M0,0h10v10H0V0z" fill="currentColor"/></svg>
+      </button>
+      <button id="btn-close" class="wc-btn wc-close" title="Close">
+        <svg viewBox="0 0 10 10" width="10" height="10"><path d="M10,1L9,0L5,4L1,0L0,1l4,4l-4,4l1,1l4-4l4,4l1-1l-4-4L10,1z" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <header class="app-header glass electron-drag">
+    <div class="header-brand">
+      <span class="shield-icon-sm">🛡️</span>
+      <span class="brand-name">Malware Scanner</span>
+      <span class="brand-badge">Security Dashboard</span>
+    </div>
+    <div class="header-user">
+      <img id="user-avatar" src="" alt="avatar" class="avatar" />
+      <span id="user-login" class="user-login"></span>
+      <div class="status-dot" id="status-dot"></div>
+      <button id="disconnect-btn" class="btn btn-ghost btn-sm">Disconnect</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar glass">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Repositories</span>
+        <span id="repo-count" class="badge">0</span>
+      </div>
+      <div class="sidebar-search">
+        <input type="text" id="repo-search" placeholder="Filter repos…" />
+      </div>
+      <div id="repo-list" class="repo-list">
+        <div class="skeleton-list">
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN PANEL -->
+    <main class="main-panel">
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab active" data-tab="overview">📊 Overview</button>
+        <button class="tab" data-tab="scan">🔍 Scan</button>
+        <button class="tab" data-tab="patterns">🧬 Patterns</button>
+        <button class="tab" data-tab="log">📋 Activity Log</button>
+      </div>
+
+      <!-- ── OVERVIEW TAB ── -->
+      <div id="tab-overview" class="tab-content active">
+        <div class="stats-grid">
+          <div class="stat-card glass">
+            <div class="stat-icon">📦</div>
+            <div class="stat-body">
+              <div id="stat-total" class="stat-value">—</div>
+              <div class="stat-label">Total Repos</div>
+            </div>
+          </div>
+          <div class="stat-card glass infected-card">
+            <div class="stat-icon">🦠</div>
+            <div class="stat-body">
+              <div id="stat-infected" class="stat-value">—</div>
+              <div class="stat-label">Infected</div>
+            </div>
+          </div>
+          <div class="stat-card glass clean-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-body">
+              <div id="stat-clean" class="stat-value">—</div>
+              <div class="stat-label">Clean</div>
+            </div>
+          </div>
+          <div class="stat-card glass">
+            <div class="stat-icon">🛡️</div>
+            <div class="stat-body">
+              <div id="stat-protected" class="stat-value">—</div>
+              <div class="stat-label">Protected (Action)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-row" style="margin-bottom: 12px;">
+          <button id="scan-all-btn" class="btn btn-primary btn-lg">🔍 Scan All (Fast)</button>
+          <button id="deep-scan-all-btn" class="btn btn-warning btn-lg">🔬 Deep Scan All</button>
+          <button id="scan-local-btn" class="btn btn-outline btn-lg">📁 Scan Local Folder</button>
+        </div>
+        <div class="action-row">
+          <button id="deploy-all-btn" class="btn btn-outline btn-lg">🛡️ Deploy Action to All</button>
+          <button id="remove-action-btn" class="btn btn-danger btn-lg">🗑️ Remove Action from All</button>
+          <button id="refresh-repos-btn" class="btn btn-ghost btn-lg">🔄 Refresh Repo List</button>
+        </div>
+        <div class="hint-inline" style="margin-top: 12px;">
+          <strong>Note:</strong> Fast Scan uses GitHub Search (may cache for 10m). Deep Scan downloads repos as zips for live accuracy.
+        </div>
+
+        <div id="scan-progress" class="scan-progress hidden">
+          <div class="progress-header">
+            <span id="progress-label">Scanning…</span>
+            <span id="progress-stats" class="progress-stats"></span>
+          </div>
+          <div class="live-feed" id="live-feed"></div>
+        </div>
+
+        <div id="infected-panel" class="infected-panel hidden">
+          <h3 class="panel-title">🦠 Infected Repositories</h3>
+          <div id="infected-list" class="infected-list"></div>
+        </div>
+      </div>
+
+      <!-- ── SCAN TAB ── -->
+      <div id="tab-scan" class="tab-content hidden">
+        <div class="panel glass">
+          <h3>Deep Scan — Single Repository</h3>
+          <p class="text-muted">Fetches every JS/TS file in the repo and runs all patterns locally. More thorough than Code Search.</p>
+          <div class="form-row">
+            <select id="deep-scan-repo" class="select-input">
+              <option value="">— Select a repository —</option>
+            </select>
+            <button id="deep-scan-btn" class="btn btn-primary">🔬 Deep Scan</button>
+          </div>
+        </div>
+
+        <div id="deep-scan-results" class="deep-scan-results hidden">
+          <div class="results-header glass">
+            <span id="deep-scan-title">Results</span>
+            <div id="deep-scan-badges"></div>
+          </div>
+          <div id="deep-scan-files" class="file-list"></div>
+        </div>
+      </div>
+
+      <!-- ── PATTERNS TAB ── -->
+      <div id="tab-patterns" class="tab-content hidden">
+        <div class="patterns-toolbar">
+          <h3>🧬 Malware Pattern Library</h3>
+          <div class="pattern-actions">
+            <button id="add-pattern-btn" class="btn btn-primary btn-sm">+ Add Pattern</button>
+            <button id="import-pattern-btn" class="btn btn-outline btn-sm">📥 Import JSON</button>
+            <a href="PATTERNS_GUIDE.md" target="_blank" class="btn btn-ghost btn-sm">📖 Guide</a>
+          </div>
+        </div>
+        <div id="pattern-list" class="pattern-list"></div>
+      </div>
+
+      <!-- ── LOG TAB ── -->
+      <div id="tab-log" class="tab-content hidden">
+        <div class="log-toolbar">
+          <h3>📋 Activity Log</h3>
+          <button id="clear-log-btn" class="btn btn-ghost btn-sm">Clear</button>
+        </div>
+        <div id="activity-log" class="activity-log"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ── MODALS ──────────────────────────────────────────────────────────── -->
+
+<!-- Add Pattern Modal -->
+<div id="modal-add-pattern" class="modal-overlay hidden">
+  <div class="modal glass">
+    <div class="modal-header">
+      <h3>Add New Pattern</h3>
+      <button class="modal-close" data-modal="modal-add-pattern">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>ID <span class="req">*</span></label>
+        <input type="text" id="np-id" placeholder="e.g. my-pattern-001" />
+      </div>
+      <div class="form-group">
+        <label>Name <span class="req">*</span></label>
+        <input type="text" id="np-name" placeholder="e.g. Suspicious eval() call" />
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="np-description" placeholder="What this pattern detects…" />
+      </div>
+      <div class="form-group">
+        <label>Literal Search String <span class="hint-inline">(for GitHub Code Search — fastest)</span></label>
+        <input type="text" id="np-literal" placeholder='e.g. eval(atob(' />
+      </div>
+      <div class="form-group">
+        <label>Regex <span class="req">*</span> <span class="hint-inline">(for deep file scan)</span></label>
+        <input type="text" id="np-regex" class="mono" placeholder='e.g. eval\s*\(\s*atob\s*\(' />
+        <div id="np-regex-error" class="field-error hidden"></div>
+      </div>
+      <div class="form-row-split">
+        <div class="form-group">
+          <label>Severity</label>
+          <select id="np-severity">
+            <option value="critical">🔴 Critical</option>
+            <option value="high">🟠 High</option>
+            <option value="medium" selected>🟡 Medium</option>
+            <option value="low">🟢 Low</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Auto-Clean?</label>
+          <select id="np-autoclean">
+            <option value="false">No (manual review)</option>
+            <option value="true">Yes (safe to auto-remove)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-modal="modal-add-pattern">Cancel</button>
+      <button id="save-pattern-btn" class="btn btn-primary">Save Pattern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Patterns Modal -->
+<div id="modal-import-pattern" class="modal-overlay hidden">
+  <div class="modal glass">
+    <div class="modal-header">
+      <h3>📥 Import Patterns from JSON</h3>
+      <button class="modal-close" data-modal="modal-import-pattern">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="text-muted">Paste a JSON array of pattern objects. See <a href="PATTERNS_GUIDE.md" target="_blank">PATTERNS_GUIDE.md</a> for the required format.</p>
+      <div class="form-group">
+        <label>Import Mode</label>
+        <select id="import-mode">
+          <option value="merge">Merge (add new, update existing by ID)</option>
+          <option value="replace">Replace All (overwrites everything)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>JSON Content</label>
+        <textarea id="import-json" class="mono" rows="12" placeholder='[&#10;  {&#10;    "id": "my-pattern",&#10;    "name": "My Pattern",&#10;    "regex": "...",&#10;    ...&#10;  }&#10;]'></textarea>
+        <div id="import-error" class="field-error hidden"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-modal="modal-import-pattern">Cancel</button>
+      <button id="do-import-btn" class="btn btn-primary">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- Clean Confirm Modal -->
+<div id="modal-clean" class="modal-overlay hidden">
+  <div class="modal glass">
+    <div class="modal-header">
+      <h3>🧹 Confirm Clean</h3>
+      <button class="modal-close" data-modal="modal-clean">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>This will remove all matched malicious patterns from:</p>
+      <div class="code-block" id="clean-target-display"></div>
+      <p class="text-muted">A git commit with <code>[skip ci]</code> will be pushed to the default branch.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-modal="modal-clean">Cancel</button>
+      <button id="confirm-clean-btn" class="btn btn-danger">🧹 Clean File</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+{
+  "name": "github-malware-scanner",
+  "version": "2.0.0",
+  "description": "Standalone GitHub repository malware scanner and cleaner — desktop app.",
+  "author": "TheLunatic1",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "electron": "electron .",
+    "electron:dev": "electron . --inspect",
+    "build": "electron-builder --win portable --x64",
+    "build:portable": "electron-builder --win portable --x64",
+    "build:installer": "electron-builder --win nsis --x64",
+    "build:win": "electron-builder --win --x64",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.0.0",
+    "adm-zip": "^0.6.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.19.0"
+  },
+  "devDependencies": {
+    "electron": "^36.9.5",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.thelunatic1.malware-scanner",
+    "productName": "GitHub Malware Scanner",
+    "copyright": "Copyright © 2026 TheLunatic1",
+    "directories": {
+      "output": "C:/Users/Salman Toha/Desktop/MalwareScannerDist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "main.js",
+      "preload.cjs",
+      "server.js",
+      "patterns.json",
+      "public/**/*",
+      "node_modules/**/*",
+      "!node_modules/.cache/**/*",
+      "!node_modules/electron/**/*",
+      "!node_modules/electron-builder/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "patterns.json",
+        "to": "patterns.json"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "artifactName": "GitHubMalwareScanner-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "GitHub Malware Scanner"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.png",
+      "category": "public.app-category.developer-tools"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png",
+      "category": "Development"
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "UNLICENSED",
+  "allowScripts": {
+    "electron@36.9.5": true
+  }
+}
