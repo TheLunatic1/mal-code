@@ -31,6 +31,11 @@
     "appId": "com.thelunatic1.malware-scanner",
     "productName": "GitHub Malware Scanner",
     "copyright": "Copyright © 2026 TheLunatic1",
+    "publish": {
+      "provider": "github",
+      "owner": "TheLunatic1",
+      "repo": "mal-code"
+    },
     "directories": {
       "output": "C:/Users/Salman Toha/Desktop/MalwareScannerDist",
       "buildResources": "assets"
