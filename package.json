@@ -15,8 +15,7 @@
     "build:installer": "electron-builder --win nsis --x64",
     "build:win": "electron-builder --win --x64",
     "build:mac": "electron-builder --mac",
-    "build:linux": "electron-builder --linux",
-    "preinstall": "node dist/setup.js"
+    "build:linux": "electron-builder --linux"
   },
   "dependencies": {
     "@octokit/rest": "^21.0.0",

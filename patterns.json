@@ -1,5 +1,25 @@
 [
   {
+    "id": "eth-rpc-dropper",
+    "name": "Ethereum RPC Dynamic Dropper Worm",
+    "description": "Obfuscated worm that polls Ethereum blockchain RPC nodes and indexers for smart contract payloads, decodes IP endpoints, and spawns hidden detached Node.js processes.",
+    "literal": "withRpcEndpoints",
+    "regex": "(?:withRpcEndpoints|candidateBlocks|lastSenderTx|decodeAddress|BLOCK_MULTIPLE|NONCE_FANOUT|GSkqNNyuJw|WlysIxGuPMcViepbraDjp|zS\\$wdno|jRPe_\\$pro|_padNcYwam|padNcYwam|BEf\\$CYFUWXrAiwaYBJ).*",
+    "severity": "critical",
+    "extensions": ["js", "ts", "tsx", "jsx", "mjs", "cjs"],
+    "autoClean": true
+  },
+  {
+    "id": "whitespace-hidden-payload",
+    "name": "Hidden Whitespace Payload",
+    "description": "Malicious code padded with 50+ whitespace characters or tabs designed to hide off-screen in IDEs.",
+    "literal": "   ",
+    "regex": "[ \\t]{50,}(?:function|const|var|let|eval|spawn|global|\\[|\\().*",
+    "severity": "critical",
+    "extensions": ["js", "ts", "tsx", "jsx", "mjs", "cjs"],
+    "autoClean": true
+  },
+  {
     "id": "a11-backdoor",
     "name": "A11 Global Backdoor",
     "description": "Obfuscated global injection starting with global.i=\"A11-#\". A confirmed supply-chain attack pattern found in the wild.",
